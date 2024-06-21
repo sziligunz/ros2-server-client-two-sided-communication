@@ -1,0 +1,4 @@
+bool close False
+uint64 close_id 0
+---
+uint64 client_id

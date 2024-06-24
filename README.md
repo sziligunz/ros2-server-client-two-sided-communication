@@ -64,28 +64,40 @@ The command above ensures that a request will be sent to the server (cloud) that
 
 ## Usage
 
-The following code contains the definition on how to process JSON data (can be found in file `client.cpp` from row 50):
+### Defining custom data processing logic
+
+The following code shows how to implement the processing of data with a given action (can be found in file `client.cpp` from row 74):
 
 ```c++
 // Process data coming from the cloud
 std::function<void(const Data::SharedPtr)> process_cloud_request = [&](const Data::SharedPtr msg) -> void {
-    RCLCPP_INFO(
-        this->get_logger(),
-        "Got data from server:\n\tid: '%ld'\n\taction: '%d'\n\tmessage: '%s'",
-        msg->id, msg->action, msg->data.c_str()
-    );
     // Parse the string data from the recieved message
     Json data = Json::parse(msg->data);
-    // Define some logic when recieved a message with a given action
+    // Define some action when recieved a message with a given action
     switch(msg->action) {
+        ////////////////////////////////////////////
+        // ADD YOUR OWN CASES WITH YOUR OWN LOGIC //
+        ////////////////////////////////////////////
         case 0:
-            // Do something with the data
-            data["name"] = "Kevin";
-            data["favourite_animal"]["name"] = "dog";
-            data["favourite_animal"]["cute"] = false;
+            // Do something with data if action is "0"
+            this->process_action_0_data(data);
             break;
         default:
             break;
     }
 };
 ```
+
+The following code demonstates how to write custom data processing logic (can be found in file `client.cpp` from row 139). *Notice that this function is supposed to work only with data having action id "0".*
+
+```c++
+// Action callback definitions (could be put in different file and included that in this one for cleaner code)
+void Client::process_action_0_data(Json& data) {
+    auto some_data = std::string(data["name"]).c_str();
+    RCLCPP_INFO(this->get_logger(), "I got action 0 data: %s.", some_data);
+}
+```
+
+### `VERBOSE` and `VERBOSE_IMPORTANT_ONLY` modes
+
+Both cloud and client have the ability to log what is happening to them. Either modes can be enabled by uncommening the appropriate lines located at the beggining of both `cloud.cpp` and `client.cpp`. `VERBOSE` mode logs out everything that it can and `VERBOSE_IMPORTANT_ONLY` logs out only the most important state changes.
